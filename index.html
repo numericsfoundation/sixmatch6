@@ -127,36 +127,50 @@ const fruitImages = [
   "images/strawberry.png"
 ];
 
+const fruitSize = 180;
+const minSpacing = 320;
+
 function generateFruits(count) {
   const fruits = [];
   const placed = [];
-  const margin = 150;
-  const maxY = slide.offsetHeight - 500;
-  const minSpacing = 280;
+  const margin = 200;
+  const slideWidth = slide.offsetWidth;
+  const slideHeight = slide.offsetHeight;
+  const maxY = slideHeight - 500;
+  
+  let attempts = 0;
+  const maxAttempts = 10000;
   
   for (let i = 0; i < count; i++) {
-    let attempts = 0;
     let x, y, ok;
+    let fruitAttempts = 0;
     
     do {
-      attempts++;
-      x = margin + Math.random() * (slide.offsetWidth - 2 * margin);
+      fruitAttempts++;
+      x = margin + Math.random() * (slideWidth - 2 * margin);
       y = margin + Math.random() * Math.max(1, maxY - margin);
       ok = true;
       
+      // Check collision with all placed fruits
       for (const p of placed) {
         const dx = x - p.x;
         const dy = y - p.y;
-        if (Math.sqrt(dx * dx + dy * dy) < minSpacing) {
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < minSpacing) {
           ok = false;
           break;
         }
       }
-    } while (!ok && attempts < 3000);
+      
+    } while (!ok && fruitAttempts < 500);
     
-    placed.push({ x, y });
-    const randomFruit = fruitImages[Math.floor(Math.random() * fruitImages.length)];
-    fruits.push({ x, y, image: randomFruit });
+    // Only add fruit if valid position found
+    if (ok) {
+      placed.push({ x, y });
+      const randomFruit = fruitImages[Math.floor(Math.random() * fruitImages.length)];
+      fruits.push({ x, y, image: randomFruit });
+    }
   }
   
   return fruits;
@@ -170,7 +184,6 @@ function displayScene(count, numeral) {
   clearSlide();
   
   const fruits = generateFruits(count);
-  const fruitSize = 200;
   
   fruits.forEach(fruit => {
     const img = document.createElement("img");
@@ -204,13 +217,13 @@ function getNextSequence() {
       numeral = "6";
     }
   } else {
-    // Other displays: numerals 1-7 with half not matching
+    // Other displays: numerals 1-7 (except 6) with half not matching
     const choices = [1, 2, 3, 4, 5, 7];
     count = choices[Math.floor(Math.random() * choices.length)];
     
     // 50% of non-6 displays don't match
     if (Math.random() < 0.5) {
-      const wrongChoices = [1, 2, 3, 4, 5, 6, 7].filter(n => n !== count);
+      let wrongChoices = [1, 2, 3, 4, 5, 7].filter(n => n !== count);
       numeral = wrongChoices[Math.floor(Math.random() * wrongChoices.length)].toString();
     } else {
       numeral = count.toString();
