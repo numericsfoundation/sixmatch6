@@ -59,12 +59,13 @@ h1 {
 .numeral {
   position: absolute;
   left: 50%;
-  bottom: 40px;
+  bottom: 50px;
   transform: translateX(-50%);
-  font-size: 120px;
+  font-size: 400px;
   font-weight: bold;
   color: #2E75B6;
   text-shadow: 2px 3px 3px rgba(0, 0, 0, 0.25);
+  line-height: 1;
 }
 
 .controls {
@@ -96,13 +97,6 @@ button:hover {
 button:active {
   transform: translateY(0);
 }
-
-.info {
-  margin-top: 20px;
-  font-size: 18px;
-  color: #333;
-  min-height: 30px;
-}
 </style>
 </head>
 <body>
@@ -112,8 +106,6 @@ button:active {
   
   <div class="slide" id="slide"></div>
   
-  <div class="info" id="info"></div>
-  
   <div class="controls">
     <button onclick="start()">▶ Start</button>
     <button onclick="pause()">⏸ Pause</button>
@@ -122,11 +114,9 @@ button:active {
 
 <script>
 const slide = document.getElementById("slide");
-const info = document.getElementById("info");
 
 let timer = null;
 let running = false;
-let lastNumeral = null;
 
 const dotSizes = [30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
 
@@ -153,7 +143,7 @@ function generateDots(count) {
     do {
       attempts++;
       x = margin + radius + Math.random() * (slide.offsetWidth - 2 * (margin + radius));
-      y = margin + radius + Math.random() * (slide.offsetHeight - 2 * (margin + radius) - 150);
+      y = margin + radius + Math.random() * (slide.offsetHeight - 2 * (margin + radius) - 250);
       ok = true;
       
       for (const p of placed) {
@@ -175,11 +165,11 @@ function generateDots(count) {
 
 function clearSlide() {
   slide.innerHTML = "";
-  info.innerText = "";
 }
 
-function displaySet(count) {
+function displayScene(count, numeral) {
   clearSlide();
+  
   const dots = generateDots(count);
   
   dots.forEach(dot => {
@@ -191,11 +181,16 @@ function displaySet(count) {
     div.style.height = dot.size + "px";
     slide.appendChild(div);
   });
+  
+  const numeralDiv = document.createElement("div");
+  numeralDiv.className = "numeral";
+  numeralDiv.innerText = numeral;
+  slide.appendChild(numeralDiv);
 }
 
 function getNextSequence() {
   const isSix = Math.random() < 0.5;
-  let count, numeral, matches;
+  let count, numeral;
   
   if (isSix) {
     count = 6;
@@ -203,42 +198,24 @@ function getNextSequence() {
     // 25% of the time, show incorrect numeral
     if (Math.random() < 0.75) {
       numeral = "6";
-      matches = true;
     } else {
       const others = ["1", "2", "3", "4", "5", "7"];
       numeral = others[Math.floor(Math.random() * others.length)];
-      matches = false;
     }
   } else {
     const choices = [1, 2, 3, 4, 5, 7];
     count = choices[Math.floor(Math.random() * choices.length)];
     numeral = count.toString();
-    matches = true;
   }
   
-  return { count, numeral, matches };
-}
-
-function displayScene(sequence) {
-  displaySet(sequence.count);
-  
-  const numeralDiv = document.createElement("div");
-  numeralDiv.className = "numeral";
-  numeralDiv.innerText = sequence.numeral;
-  slide.appendChild(numeralDiv);
-  
-  const status = sequence.matches ? "✓ Match" : "✗ No Match";
-  const statusColor = sequence.matches ? "#6AA84F" : "#C00000";
-  info.innerText = status;
-  info.style.color = statusColor;
-  info.style.fontWeight = "bold";
+  return { count, numeral };
 }
 
 function next() {
   if (!running) return;
   
   const sequence = getNextSequence();
-  displayScene(sequence);
+  displayScene(sequence.count, sequence.numeral);
   
   timer = setTimeout(next, 3000);
 }
