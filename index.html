@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numeral Matching Set</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Century Gothic', 'Trebuchet MS', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.container {
+  text-align: center;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  width: 95%;
+  max-width: 1400px;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 32px;
+}
+
+.slide {
+  width: 100%;
+  height: 700px;
+  position: relative;
+  background: #f9f9f9;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 3px solid #667eea;
+  margin: 20px 0;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dot {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: #2E75B6;
+}
+
+.numeral {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  font-size: 120px;
+  font-weight: bold;
+  color: #2E75B6;
+  text-shadow: 2px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+.controls {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+button {
+  font-size: 18px;
+  padding: 12px 30px;
+  margin: 0 10px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: 'Century Gothic', 'Trebuchet MS', sans-serif;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.info {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #333;
+  min-height: 30px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Numeral Matching Set</h1>
+  
+  <div class="slide" id="slide"></div>
+  
+  <div class="info" id="info"></div>
+  
+  <div class="controls">
+    <button onclick="start()">▶ Start</button>
+    <button onclick="pause()">⏸ Pause</button>
+  </div>
+</div>
+
+<script>
+const slide = document.getElementById("slide");
+const info = document.getElementById("info");
+
+let timer = null;
+let running = false;
+let lastNumeral = null;
+
+const dotSizes = [30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
+
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function generateDots(count) {
+  const dots = [];
+  const placed = [];
+  const margin = 100;
+  
+  for (let i = 0; i < count; i++) {
+    const size = dotSizes[i];
+    const radius = size / 2;
+    let attempts = 0;
+    let x, y, ok;
+    
+    do {
+      attempts++;
+      x = margin + radius + Math.random() * (slide.offsetWidth - 2 * (margin + radius));
+      y = margin + radius + Math.random() * (slide.offsetHeight - 2 * (margin + radius) - 150);
+      ok = true;
+      
+      for (const p of placed) {
+        const dx = x - p.x;
+        const dy = y - p.y;
+        if (Math.sqrt(dx * dx + dy * dy) < radius + p.radius + 30) {
+          ok = false;
+          break;
+        }
+      }
+    } while (!ok && attempts < 3000);
+    
+    placed.push({ x, y, radius });
+    dots.push({ x, y, size });
+  }
+  
+  return dots;
+}
+
+function clearSlide() {
+  slide.innerHTML = "";
+  info.innerText = "";
+}
+
+function displaySet(count) {
+  clearSlide();
+  const dots = generateDots(count);
+  
+  dots.forEach(dot => {
+    const div = document.createElement("div");
+    div.className = "dot";
+    div.style.left = dot.x + "px";
+    div.style.top = dot.y + "px";
+    div.style.width = dot.size + "px";
+    div.style.height = dot.size + "px";
+    slide.appendChild(div);
+  });
+}
+
+function getNextSequence() {
+  const isSix = Math.random() < 0.5;
+  let count, numeral, matches;
+  
+  if (isSix) {
+    count = 6;
+    // 75% of the time, show correct numeral (6)
+    // 25% of the time, show incorrect numeral
+    if (Math.random() < 0.75) {
+      numeral = "6";
+      matches = true;
+    } else {
+      const others = ["1", "2", "3", "4", "5", "7"];
+      numeral = others[Math.floor(Math.random() * others.length)];
+      matches = false;
+    }
+  } else {
+    const choices = [1, 2, 3, 4, 5, 7];
+    count = choices[Math.floor(Math.random() * choices.length)];
+    numeral = count.toString();
+    matches = true;
+  }
+  
+  return { count, numeral, matches };
+}
+
+function displayScene(sequence) {
+  displaySet(sequence.count);
+  
+  const numeralDiv = document.createElement("div");
+  numeralDiv.className = "numeral";
+  numeralDiv.innerText = sequence.numeral;
+  slide.appendChild(numeralDiv);
+  
+  const status = sequence.matches ? "✓ Match" : "✗ No Match";
+  const statusColor = sequence.matches ? "#6AA84F" : "#C00000";
+  info.innerText = status;
+  info.style.color = statusColor;
+  info.style.fontWeight = "bold";
+}
+
+function next() {
+  if (!running) return;
+  
+  const sequence = getNextSequence();
+  displayScene(sequence);
+  
+  timer = setTimeout(next, 3000);
+}
+
+function start() {
+  if (running) return;
+  running = true;
+  next();
+}
+
+function pause() {
+  running = false;
+  clearTimeout(timer);
+}
+
+// Initial display
+clearSlide();
+</script>
+
+</body>
+</html>
