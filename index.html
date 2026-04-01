@@ -127,39 +127,36 @@ const fruitImages = [
   "images/strawberry.png"
 ];
 
-const fruitSizes = [60, 80, 100, 120, 140, 160, 180, 200, 220, 240];
-
 function generateFruits(count) {
   const fruits = [];
   const placed = [];
-  const margin = 100;
-  const maxY = slide.offsetHeight - 450;
+  const margin = 150;
+  const maxY = slide.offsetHeight - 500;
+  const minSpacing = 280;
   
   for (let i = 0; i < count; i++) {
-    const size = fruitSizes[i];
-    const radius = size / 2;
     let attempts = 0;
     let x, y, ok;
     
     do {
       attempts++;
-      x = margin + radius + Math.random() * (slide.offsetWidth - 2 * (margin + radius));
-      y = margin + radius + Math.random() * Math.max(1, maxY - margin - radius);
+      x = margin + Math.random() * (slide.offsetWidth - 2 * margin);
+      y = margin + Math.random() * Math.max(1, maxY - margin);
       ok = true;
       
       for (const p of placed) {
         const dx = x - p.x;
         const dy = y - p.y;
-        if (Math.sqrt(dx * dx + dy * dy) < radius + p.radius + 30) {
+        if (Math.sqrt(dx * dx + dy * dy) < minSpacing) {
           ok = false;
           break;
         }
       }
     } while (!ok && attempts < 3000);
     
-    placed.push({ x, y, radius });
+    placed.push({ x, y });
     const randomFruit = fruitImages[Math.floor(Math.random() * fruitImages.length)];
-    fruits.push({ x, y, size, image: randomFruit });
+    fruits.push({ x, y, image: randomFruit });
   }
   
   return fruits;
@@ -173,6 +170,7 @@ function displayScene(count, numeral) {
   clearSlide();
   
   const fruits = generateFruits(count);
+  const fruitSize = 200;
   
   fruits.forEach(fruit => {
     const img = document.createElement("img");
@@ -180,8 +178,8 @@ function displayScene(count, numeral) {
     img.src = fruit.image;
     img.style.left = fruit.x + "px";
     img.style.top = fruit.y + "px";
-    img.style.width = fruit.size + "px";
-    img.style.height = fruit.size + "px";
+    img.style.width = fruitSize + "px";
+    img.style.height = fruitSize + "px";
     slide.appendChild(img);
   });
   
