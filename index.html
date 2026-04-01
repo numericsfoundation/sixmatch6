@@ -53,13 +53,13 @@ h1 {
   position: absolute;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: #2E75B6;
+  background: #000;
 }
 
 .numeral {
   position: absolute;
   left: 50%;
-  bottom: 50px;
+  bottom: 20px;
   transform: translateX(-50%);
   font-size: 400px;
   font-weight: bold;
@@ -133,6 +133,7 @@ function generateDots(count) {
   const dots = [];
   const placed = [];
   const margin = 100;
+  const maxY = slide.offsetHeight - 450;
   
   for (let i = 0; i < count; i++) {
     const size = dotSizes[i];
@@ -143,7 +144,7 @@ function generateDots(count) {
     do {
       attempts++;
       x = margin + radius + Math.random() * (slide.offsetWidth - 2 * (margin + radius));
-      y = margin + radius + Math.random() * (slide.offsetHeight - 2 * (margin + radius) - 250);
+      y = margin + radius + Math.random() * Math.max(1, maxY - margin - radius);
       ok = true;
       
       for (const p of placed) {
