@@ -51,7 +51,8 @@ h1 {
 
 .fruit {
   position: absolute;
-  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
   object-fit: contain;
   filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.3));
 }
@@ -59,9 +60,9 @@ h1 {
 .numeral {
   position: absolute;
   left: 50%;
-  bottom: 20px;
+  bottom: 40px;
   transform: translateX(-50%);
-  font-size: 400px;
+  font-size: 300px;
   font-weight: bold;
   color: #2E75B6;
   text-shadow: 2px 3px 3px rgba(0, 0, 0, 0.25);
@@ -120,78 +121,68 @@ let running = false;
 let sequenceCounter = 0;
 
 const fruitImages = [
+  "images/strawberry.png",
   "images/apple.png",
-  "images/orange.png",
   "images/banana.png",
   "images/pear.png",
   "images/watermelon.png",
-  "images/strawberry.png"
+  "images/orange.png"
 ];
 
-const fruitSize = 150;
-
-function generateFruits(count) {
-  const fruits = [];
-  const placed = [];
-  const slideWidth = slide.offsetWidth;
-  const slideHeight = slide.offsetHeight;
-  
-  // Grid-based placement for maximum spacing
-  const gridCols = 4;
-  const gridRows = 3;
-  const cellWidth = slideWidth / gridCols;
-  const cellHeight = (slideHeight - 150) / gridRows;
-  
+function generateFruitPositions(count) {
   const positions = [];
-  for (let row = 0; row < gridRows; row++) {
-    for (let col = 0; col < gridCols; col++) {
-      positions.push({
-        x: col * cellWidth + cellWidth / 2,
-        y: row * cellHeight + cellHeight / 2,
-        col: col,
-        row: row
-      });
+  const slideWidth = slide.offsetWidth;
+  const slideHeight = slide.offsetHeight - 200;
+  const fruitSize = 150;
+  const minDistance = 220;
+  
+  for (let i = 0; i < count; i++) {
+    let x, y, valid;
+    let attempts = 0;
+    
+    do {
+      valid = true;
+      attempts++;
+      x = Math.random() * (slideWidth - fruitSize);
+      y = Math.random() * (slideHeight - fruitSize);
+      
+      // Check distance from all existing positions
+      for (let pos of positions) {
+        const dx = x - pos.x;
+        const dy = y - pos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < minDistance) {
+          valid = false;
+          break;
+        }
+      }
+    } while (!valid && attempts < 100);
+    
+    if (valid) {
+      positions.push({ x, y });
     }
   }
   
-  // Shuffle positions
-  positions.sort(() => Math.random() - 0.5);
-  
-  // Select first 'count' positions and add random offset
-  for (let i = 0; i < Math.min(count, positions.length); i++) {
-    const pos = positions[i];
-    const offsetX = (Math.random() - 0.5) * (cellWidth * 0.5);
-    const offsetY = (Math.random() - 0.5) * (cellHeight * 0.5);
-    const x = Math.max(100, Math.min(slideWidth - 100, pos.x + offsetX));
-    const y = Math.max(100, Math.min(slideHeight - 200, pos.y + offsetY));
-    
-    const randomFruit = fruitImages[Math.floor(Math.random() * fruitImages.length)];
-    fruits.push({ x, y, image: randomFruit });
-  }
-  
-  return fruits;
-}
-
-function clearSlide() {
-  slide.innerHTML = "";
+  return positions;
 }
 
 function displayScene(count, numeral) {
-  clearSlide();
+  slide.innerHTML = "";
   
-  const fruits = generateFruits(count);
+  const positions = generateFruitPositions(count);
   
-  fruits.forEach(fruit => {
+  // Display fruits at calculated positions
+  for (let i = 0; i < positions.length; i++) {
     const img = document.createElement("img");
     img.className = "fruit";
-    img.src = fruit.image;
-    img.style.left = fruit.x + "px";
-    img.style.top = fruit.y + "px";
-    img.style.width = fruitSize + "px";
-    img.style.height = fruitSize + "px";
+    img.src = fruitImages[i % fruitImages.length];
+    img.style.left = positions[i].x + "px";
+    img.style.top = positions[i].y + "px";
     slide.appendChild(img);
-  });
+  }
   
+  // Display the numeral at the bottom
   const numeralDiv = document.createElement("div");
   numeralDiv.className = "numeral";
   numeralDiv.innerText = numeral;
@@ -207,10 +198,10 @@ function getNextSequence() {
     count = 6;
     // 1/3 of 6 displays don't match
     if (Math.random() < 0.333) {
-      const others = ["1", "2", "3", "4", "5", "7"];
+      const others = [1, 2, 3, 4, 5, 7];
       numeral = others[Math.floor(Math.random() * others.length)];
     } else {
-      numeral = "6";
+      numeral = 6;
     }
   } else {
     // Other displays: numerals 1-7 (except 6) with half not matching
@@ -220,9 +211,9 @@ function getNextSequence() {
     // 50% of non-6 displays don't match
     if (Math.random() < 0.5) {
       let wrongChoices = [1, 2, 3, 4, 5, 7].filter(n => n !== count);
-      numeral = wrongChoices[Math.floor(Math.random() * wrongChoices.length)].toString();
+      numeral = wrongChoices[Math.floor(Math.random() * wrongChoices.length)];
     } else {
-      numeral = count.toString();
+      numeral = count;
     }
   }
   
