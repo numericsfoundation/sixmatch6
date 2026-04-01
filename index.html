@@ -1,247 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Numeral Matching Set</title>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  font-family: 'Century Gothic', 'Trebuchet MS', sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-}
-
-.container {
-  text-align: center;
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  width: 95%;
-  max-width: 1400px;
-}
-
-h1 {
-  color: #333;
-  margin-bottom: 20px;
-  font-size: 32px;
-}
-
-.slide {
-  width: 100%;
-  height: 700px;
-  position: relative;
-  background: #f9f9f9;
-  overflow: hidden;
-  border-radius: 10px;
-  border: 3px solid #667eea;
-  margin: 20px 0;
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.dot {
-  position: absolute;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: #000;
-}
-
-.numeral {
-  position: absolute;
-  left: 50%;
-  bottom: 20px;
-  transform: translateX(-50%);
-  font-size: 400px;
-  font-weight: bold;
-  color: #2E75B6;
-  text-shadow: 2px 3px 3px rgba(0, 0, 0, 0.25);
-  line-height: 1;
-}
-
-.controls {
-  margin-top: 20px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-button {
-  font-size: 18px;
-  padding: 12px 30px;
-  margin: 0 10px;
-  cursor: pointer;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: transform 0.2s, box-shadow 0.2s;
-  font-family: 'Century Gothic', 'Trebuchet MS', sans-serif;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-button:active {
-  transform: translateY(0);
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Fruit Images</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="slide">
+        <script>
+            const images = [
+                'images/apple.png',
+                'images/orange.png',
+                'images/banana.png',
+                'images/pear.png',
+                'images/watermelon.png',
+                'images/strawberry.png'
+            ];
 
-<div class="container">
-  <h1>Does the numeral match the number of dots?</h1>
-  
-  <div class="slide" id="slide"></div>
-  
-  <div class="controls">
-    <button onclick="start()">▶ Start</button>
-    <button onclick="pause()">⏸ Pause</button>
-  </div>
-</div>
-
-<script>
-const slide = document.getElementById("slide");
-
-let timer = null;
-let running = false;
-
-const dotSizes = [30, 40, 50, 60, 70, 80, 90, 100, 110, 120];
-
-function shuffle(arr) {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-function generateDots(count) {
-  const dots = [];
-  const placed = [];
-  const margin = 100;
-  const maxY = slide.offsetHeight - 450;
-  
-  for (let i = 0; i < count; i++) {
-    const size = dotSizes[i];
-    const radius = size / 2;
-    let attempts = 0;
-    let x, y, ok;
-    
-    do {
-      attempts++;
-      x = margin + radius + Math.random() * (slide.offsetWidth - 2 * (margin + radius));
-      y = margin + radius + Math.random() * Math.max(1, maxY - margin - radius);
-      ok = true;
-      
-      for (const p of placed) {
-        const dx = x - p.x;
-        const dy = y - p.y;
-        if (Math.sqrt(dx * dx + dy * dy) < radius + p.radius + 30) {
-          ok = false;
-          break;
-        }
-      }
-    } while (!ok && attempts < 3000);
-    
-    placed.push({ x, y, radius });
-    dots.push({ x, y, size });
-  }
-  
-  return dots;
-}
-
-function clearSlide() {
-  slide.innerHTML = "";
-}
-
-function displayScene(count, numeral) {
-  clearSlide();
-  
-  const dots = generateDots(count);
-  
-  dots.forEach(dot => {
-    const div = document.createElement("div");
-    div.className = "dot";
-    div.style.left = dot.x + "px";
-    div.style.top = dot.y + "px";
-    div.style.width = dot.size + "px";
-    div.style.height = dot.size + "px";
-    slide.appendChild(div);
-  });
-  
-  const numeralDiv = document.createElement("div");
-  numeralDiv.className = "numeral";
-  numeralDiv.innerText = numeral;
-  slide.appendChild(numeralDiv);
-}
-
-function getNextSequence() {
-  const isSix = Math.random() < 0.5;
-  let count, numeral;
-  
-  if (isSix) {
-    count = 6;
-    // 40% of the time, show correct numeral (6)
-    // 60% of the time, show incorrect numeral
-    if (Math.random() < 0.4) {
-      numeral = "6";
-    } else {
-      const others = ["1", "2", "3", "4", "5", "7"];
-      numeral = others[Math.floor(Math.random() * others.length)];
-    }
-  } else {
-    const choices = [1, 2, 3, 4, 5, 7];
-    count = choices[Math.floor(Math.random() * choices.length)];
-    
-    // 30% of the time, show incorrect numeral for non-6 sets
-    if (Math.random() < 0.3) {
-      const wrongChoices = [1, 2, 3, 4, 5, 6, 7].filter(n => n !== count);
-      numeral = wrongChoices[Math.floor(Math.random() * wrongChoices.length)].toString();
-    } else {
-      numeral = count.toString();
-    }
-  }
-  
-  return { count, numeral };
-}
-
-function next() {
-  if (!running) return;
-  
-  const sequence = getNextSequence();
-  displayScene(sequence.count, sequence.numeral);
-  
-  timer = setTimeout(next, 3000);
-}
-
-function start() {
-  if (running) return;
-  running = true;
-  next();
-}
-
-function pause() {
-  running = false;
-  clearTimeout(timer);
-}
-
-// Initial display
-clearSlide();
-</script>
-
+            const slide = document.querySelector('.slide');
+            for (let i = 0; i < 10; i++) { // Create 10 random fruit images
+                const img = document.createElement('img');
+                img.src = images[Math.floor(Math.random() * images.length)];
+                img.style.position = 'absolute';
+                img.style.left = Math.random() * 100 + 'vw';
+                img.style.top = Math.random() * 100 + 'vh';
+                img.style.width = '100px'; // Set image width
+                img.style.height = '100px'; // Set image height
+                slide.appendChild(img);
+            }
+        </script>
+    </div>
 </body>
 </html>
