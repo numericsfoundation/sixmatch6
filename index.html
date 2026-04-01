@@ -195,9 +195,9 @@ function getNextSequence() {
   
   if (isSix) {
     count = 6;
-    // 75% of the time, show correct numeral (6)
-    // 25% of the time, show incorrect numeral
-    if (Math.random() < 0.75) {
+    // 40% of the time, show correct numeral (6)
+    // 60% of the time, show incorrect numeral
+    if (Math.random() < 0.4) {
       numeral = "6";
     } else {
       const others = ["1", "2", "3", "4", "5", "7"];
@@ -206,7 +206,14 @@ function getNextSequence() {
   } else {
     const choices = [1, 2, 3, 4, 5, 7];
     count = choices[Math.floor(Math.random() * choices.length)];
-    numeral = count.toString();
+    
+    // 30% of the time, show incorrect numeral for non-6 sets
+    if (Math.random() < 0.3) {
+      const wrongChoices = [1, 2, 3, 4, 5, 6, 7].filter(n => n !== count);
+      numeral = wrongChoices[Math.floor(Math.random() * wrongChoices.length)].toString();
+    } else {
+      numeral = count.toString();
+    }
   }
   
   return { count, numeral };
