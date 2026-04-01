@@ -53,6 +53,7 @@ h1 {
   position: absolute;
   transform: translate(-50%, -50%);
   object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.3));
 }
 
 .numeral {
@@ -127,50 +128,45 @@ const fruitImages = [
   "images/strawberry.png"
 ];
 
-const fruitSize = 180;
-const minSpacing = 320;
+const fruitSize = 150;
 
 function generateFruits(count) {
   const fruits = [];
   const placed = [];
-  const margin = 200;
   const slideWidth = slide.offsetWidth;
   const slideHeight = slide.offsetHeight;
-  const maxY = slideHeight - 500;
   
-  let attempts = 0;
-  const maxAttempts = 10000;
+  // Grid-based placement for maximum spacing
+  const gridCols = 4;
+  const gridRows = 3;
+  const cellWidth = slideWidth / gridCols;
+  const cellHeight = (slideHeight - 150) / gridRows;
   
-  for (let i = 0; i < count; i++) {
-    let x, y, ok;
-    let fruitAttempts = 0;
-    
-    do {
-      fruitAttempts++;
-      x = margin + Math.random() * (slideWidth - 2 * margin);
-      y = margin + Math.random() * Math.max(1, maxY - margin);
-      ok = true;
-      
-      // Check collision with all placed fruits
-      for (const p of placed) {
-        const dx = x - p.x;
-        const dy = y - p.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < minSpacing) {
-          ok = false;
-          break;
-        }
-      }
-      
-    } while (!ok && fruitAttempts < 500);
-    
-    // Only add fruit if valid position found
-    if (ok) {
-      placed.push({ x, y });
-      const randomFruit = fruitImages[Math.floor(Math.random() * fruitImages.length)];
-      fruits.push({ x, y, image: randomFruit });
+  const positions = [];
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
+      positions.push({
+        x: col * cellWidth + cellWidth / 2,
+        y: row * cellHeight + cellHeight / 2,
+        col: col,
+        row: row
+      });
     }
+  }
+  
+  // Shuffle positions
+  positions.sort(() => Math.random() - 0.5);
+  
+  // Select first 'count' positions and add random offset
+  for (let i = 0; i < Math.min(count, positions.length); i++) {
+    const pos = positions[i];
+    const offsetX = (Math.random() - 0.5) * (cellWidth * 0.5);
+    const offsetY = (Math.random() - 0.5) * (cellHeight * 0.5);
+    const x = Math.max(100, Math.min(slideWidth - 100, pos.x + offsetX));
+    const y = Math.max(100, Math.min(slideHeight - 200, pos.y + offsetY));
+    
+    const randomFruit = fruitImages[Math.floor(Math.random() * fruitImages.length)];
+    fruits.push({ x, y, image: randomFruit });
   }
   
   return fruits;
